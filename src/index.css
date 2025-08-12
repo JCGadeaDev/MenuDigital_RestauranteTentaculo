@@ -1,0 +1,296 @@
+/* Importar fuente Inter moderna */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Variables de marca inspiradas en el logo del pulpo */
+:root{
+  --brand-navy: #1e40af;      /* blue-700 - azul profundo del mar */
+  --brand-blue: #3b82f6;      /* blue-500 - azul océano */
+  --brand-sky:  #dbeafe;      /* blue-100 - azul cielo claro */
+  --brand-sun:  #f59e0b;      /* amber-500 - dorado arena */
+  --brand-cream: #f0f9ff;     /* sky-50 - crema oceánico */
+  --brand-light: #f8fafc;     /* slate-50 - blanco perlado */
+  --brand-soft: #e0f2fe;      /* sky-100 - azul suave */
+  --brand-accent: #06b6d4;    /* cyan-500 - turquesa */
+  --brand-coral: #f97316;     /* orange-500 - coral */
+  --brand-deep: #0f172a;      /* slate-900 - azul profundo */
+  --brand-aqua: #0891b2;      /* sky-600 - agua marina */
+}
+
+@font-face {
+  font-family: 'Poppins';
+  src: url('/fonts/Poppins-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Poppins';
+  src: url('/fonts/Poppins-SemiBold.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+html { 
+  font-family: Poppins, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  scroll-behavior: smooth;
+}
+
+body {
+  background: linear-gradient(135deg, var(--brand-cream) 0%, var(--brand-soft) 50%, var(--brand-sky) 100%);
+  min-height: 100vh;
+  color: #1e293b; /* slate-800 para texto por defecto */
+}
+
+/* Clase para fuente Inter moderna */
+.font-inter {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+}
+
+/* Scrollbar personalizado temática marina */
+::-webkit-scrollbar {
+  width: 8px;
+  background: var(--brand-cream);
+}
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, var(--brand-navy), var(--brand-blue));
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(to bottom, var(--brand-blue), var(--brand-accent));
+}
+
+/* Ocultar scrollbar para componentes específicos */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Utilidades para truncar texto */
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Animaciones temática marina */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shimmer-ocean {
+  0% {
+    background-position: -200px 0;
+  }
+  100% {
+    background-position: calc(200px + 100%) 0;
+  }
+}
+
+@keyframes pulse-glow-ocean {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(59, 130, 246, 0.5), 0 0 40px rgba(6, 182, 212, 0.3);
+  }
+}
+
+@keyframes wave-flow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes bubble-float {
+  0%, 100% {
+    transform: translateY(0) translateX(0);
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateY(-100vh) translateX(50px);
+    opacity: 0;
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.8s ease-out forwards;
+}
+
+.animate-shimmer-ocean {
+  animation: shimmer-ocean 2s infinite;
+  background: linear-gradient(
+    90deg,
+    #f0f9ff 0px,
+    #e0f2fe 40px,
+    #f0f9ff 80px
+  );
+  background-size: 200px;
+}
+
+.animate-pulse-glow-ocean {
+  animation: pulse-glow-ocean 2s infinite;
+}
+
+.animate-wave {
+  animation: wave-flow 3s ease infinite;
+  background-size: 200% 200%;
+}
+
+/* Estilos para glassmorphism temática marina */
+.glass-ocean {
+  background: rgba(240, 249, 255, 0.6);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.glass-ocean-deep {
+  background: rgba(240, 249, 255, 0.8);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(30, 64, 175, 0.3);
+}
+
+/* Focus states temática marina */
+.focus-brand:focus {
+  outline: 2px solid var(--brand-navy);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.3);
+}
+
+/* Utilidades adicionales temática marina */
+.text-shadow-ocean {
+  text-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+}
+
+.text-shadow-glow-ocean {
+  text-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
+}
+
+.bg-gradient-ocean {
+  background: linear-gradient(135deg, var(--brand-cream), var(--brand-soft));
+}
+
+.bg-gradient-blue-cyan {
+  background: linear-gradient(135deg, var(--brand-navy), var(--brand-accent));
+}
+
+.bg-gradient-sea {
+  background: linear-gradient(135deg, var(--brand-blue), var(--brand-aqua));
+}
+
+.bg-gradient-coral {
+  background: linear-gradient(135deg, var(--brand-sun), var(--brand-coral));
+}
+
+/* Bordes temática marina */
+.border-ocean {
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.1);
+}
+
+.border-ocean:hover {
+  border-color: rgba(6, 182, 212, 0.4);
+  box-shadow: 0 0 20px rgba(6, 182, 212, 0.2);
+}
+
+/* Efectos de ondas */
+.wave-effect {
+  position: relative;
+  overflow: hidden;
+}
+
+.wave-effect::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 70%);
+  animation: wave-flow 4s ease-in-out infinite;
+}
+
+/* Selección de texto temática marina */
+::selection {
+  background: rgba(59, 130, 246, 0.3);
+  color: #1e293b;
+}
+
+::-moz-selection {
+  background: rgba(59, 130, 246, 0.3);
+  color: #1e293b;
+}
+
+/* Responsive optimizado */
+@media (max-width: 640px) {
+  html { font-size: 15px; }
+}
+
+@media (max-width: 400px) {
+  html { font-size: 14px; }
+}
+
+/* Mejoras para accesibilidad */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Efectos especiales para el tentáculo */
+.tentacle-gradient {
+  background: linear-gradient(45deg, var(--brand-navy), var(--brand-blue), var(--brand-accent), var(--brand-coral));
+  background-size: 400% 400%;
+  animation: wave-flow 8s ease infinite;
+}
+
+.ocean-depth {
+  background: radial-gradient(ellipse at center, var(--brand-blue) 0%, var(--brand-navy) 50%, var(--brand-deep) 100%);
+}
