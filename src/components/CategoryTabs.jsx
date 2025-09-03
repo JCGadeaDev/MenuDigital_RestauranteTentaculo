@@ -8,6 +8,7 @@ export default function CategoryTabs({ categorias = [], activa, onChange }) {
   const [showTooltip, setShowTooltip] = useState(null);
   const [showScrollHint, setShowScrollHint] = useState(false);
   const [isScrolling, setIsScrolling] = useState(false);
+  const [isUserScrolling, setIsUserScrolling] = useState(false);
   const scrollContainerRef = useRef(null);
   const scrollTimeoutRef = useRef(null);
   const categoryElementsRef = useRef([]);
@@ -27,14 +28,14 @@ export default function CategoryTabs({ categorias = [], activa, onChange }) {
   useEffect(() => {
     if (isMobile && categorias.length > 3) {
       setShowScrollHint(true);
-      const timer = setTimeout(() => setShowScrollHint(false), 3000);
+      const timer = setTimeout(() => setShowScrollHint(false), 4000);
       return () => clearTimeout(timer);
     }
   }, [isMobile, categorias.length]);
 
-  // NUEVA FUNCIÓN: Detectar categoría activa por scroll
+  // FUNCIÓN MEJORADA: Detectar categoría activa por scroll (solo si usuario está scrolleando)
   const detectActiveCategory = useCallback(() => {
-    if (!isMobile) return;
+    if (!isMobile || !isUserScrolling) return;
     
     const container = scrollContainerRef.current;
     if (!container) return;
@@ -45,7 +46,6 @@ export default function CategoryTabs({ categorias = [], activa, onChange }) {
     let closestElement = null;
     let closestDistance = Infinity;
 
-    // Encontrar el elemento más cercano al centro
     categoryElementsRef.current.forEach((element, index) => {
       if (!element) return;
       
@@ -59,14 +59,13 @@ export default function CategoryTabs({ categorias = [], activa, onChange }) {
       }
     });
 
-    // Cambiar categoría activa si encontramos una diferente
     if (closestElement && categorias[closestElement.index]) {
       const newActiveCategory = categorias[closestElement.index].id;
       if (newActiveCategory !== activa) {
         onChange?.(newActiveCategory);
       }
     }
-  }, [isMobile, categorias, activa, onChange]);
+  }, [isMobile, categorias, activa, onChange, isUserScrolling]);
 
   // Actualiza estado de navegación
   const updateScrollState = useCallback(() => {
@@ -79,17 +78,18 @@ export default function CategoryTabs({ categorias = [], activa, onChange }) {
     setCanScrollLeft(scrollLeft > tolerance);
     setCanScrollRight(scrollLeft < scrollWidth - clientWidth - tolerance);
     
-    // Detectar cuando está scrolleando
     setIsScrolling(true);
     clearTimeout(scrollTimeoutRef.current);
     scrollTimeoutRef.current = setTimeout(() => {
       setIsScrolling(false);
-      // Detectar categoría activa después de que pare el scroll
-      if (isMobile) {
+      // Solo detectar categoría activa si el usuario estaba scrolleando manualmente
+      if (isMobile && isUserScrolling) {
         detectActiveCategory();
+        // Reset user scrolling flag después de un momento
+        setTimeout(() => setIsUserScrolling(false), 100);
       }
     }, 150);
-  }, [isMobile, detectActiveCategory]);
+  }, [isMobile, detectActiveCategory, isUserScrolling]);
 
   useEffect(() => {
     const el = scrollContainerRef.current;
@@ -125,6 +125,68 @@ export default function CategoryTabs({ categorias = [], activa, onChange }) {
     });
   }, []);
 
+  // Auto-scroll para centrar elemento activo (solo cambios programáticos)
+  useEffect(() => {
+    const el = scrollContainerRef.current;
+    if (!el || isScrolling || isUserScrolling) return;
+
+    const activeButton = el.querySelector('[data-active="true"]');
+    if (activeButton) {
+      activeButton.scrollIntoView({
+        behavior: "smooth",
+        inline: "center",
+        block: "nearest"
+      });
+    }
+  }, [activa, isScrolling, isUserScrolling]);
+
+  // GESTIÓN MEJORADA DE EVENTOS TÁCTILES
+  const handleTouchStart = useCallback((e) => {
+    if (!isMobile) return;
+    setShowScrollHint(false);
+    setIsUserScrolling(true);
+  }, [isMobile]);
+
+  const handleTouchEnd = useCallback((e) => {
+    if (!isMobile) return;
+    // Mantener la bandera por un momento para detectar la categoría final
+    setTimeout(() => {
+      if (!isScrolling) {
+        setIsUserScrolling(false);
+      }
+    }, 200);
+  }, [isMobile, isScrolling]);
+
+  // FUNCIÓN MEJORADA: Manejar click en categoría
+  const handleCategoryClick = useCallback((categoriaId, event) => {
+    // Prevenir el comportamiento por defecto
+    event.preventDefault();
+    event.stopPropagation();
+    
+    if (isMobile) {
+      // En móvil, cambiar categoría inmediatamente al hacer tap
+      setIsUserScrolling(false); // Resetear scroll flag
+      onChange?.(categoriaId);
+      
+      // Scroll al elemento después del cambio
+      setTimeout(() => {
+        const categoryIndex = categorias.findIndex(c => c.id === categoriaId);
+        const categoryElement = categoryElementsRef.current[categoryIndex];
+        
+        if (categoryElement) {
+          categoryElement.scrollIntoView({
+            behavior: "smooth",
+            inline: "center",
+            block: "nearest"
+          });
+        }
+      }, 50);
+    } else {
+      // En escritorio, comportamiento normal
+      onChange?.(categoriaId);
+    }
+  }, [isMobile, categorias, onChange]);
+
   // Navegación con teclado
   const handleKeyNavigation = useCallback((e) => {
     if (!categorias.length) return;
@@ -155,47 +217,6 @@ export default function CategoryTabs({ categorias = [], activa, onChange }) {
 
     onChange?.(categorias[newIndex].id);
   }, [categorias, activa, onChange]);
-
-  // Auto-scroll para centrar elemento activo (solo para escritorio y cambios programáticos)
-  useEffect(() => {
-    const el = scrollContainerRef.current;
-    if (!el || isScrolling) return;
-
-    const activeButton = el.querySelector('[data-active="true"]');
-    if (activeButton && !isMobile) { // Solo en escritorio
-      activeButton.scrollIntoView({
-        behavior: "smooth",
-        inline: "center",
-        block: "nearest"
-      });
-    }
-  }, [activa, isMobile, isScrolling]);
-
-  // Gestos táctiles mejorados
-  const handleTouchStart = useCallback((e) => {
-    if (!isMobile) return;
-    setShowScrollHint(false);
-  }, [isMobile]);
-
-  // NUEVA FUNCIÓN: Manejar click en categoría (solo en escritorio)
-  const handleCategoryClick = useCallback((categoriaId) => {
-    if (isMobile) {
-      // En móvil, solo scroll al elemento sin cambiar la categoría activa
-      const categoryIndex = categorias.findIndex(c => c.id === categoriaId);
-      const categoryElement = categoryElementsRef.current[categoryIndex];
-      
-      if (categoryElement) {
-        categoryElement.scrollIntoView({
-          behavior: "smooth",
-          inline: "center",
-          block: "nearest"
-        });
-      }
-    } else {
-      // En escritorio, comportamiento normal
-      onChange?.(categoriaId);
-    }
-  }, [isMobile, categorias, onChange]);
 
   // Estilos optimizados
   const containerStyle = {
@@ -273,15 +294,17 @@ export default function CategoryTabs({ categorias = [], activa, onChange }) {
     opacity: isScrolling ? 0.6 : 1,
   });
 
+  // ESTILOS MEJORADOS PARA CATEGORÍAS MÓVILES
   const buttonStyle = (active) => ({
-    padding: isMobile ? "12px 16px" : "14px 20px",
+    padding: isMobile ? "14px 18px" : "14px 20px", // Más padding en móvil
     borderRadius: isMobile ? 12 : 14,
     fontWeight: active ? 700 : 600,
-    fontSize: isMobile ? 14 : 15,
+    fontSize: isMobile ? 15 : 15, // Texto ligeramente más grande en móvil
     lineHeight: 1.3,
     cursor: "pointer",
     whiteSpace: "nowrap",
-    minWidth: "fit-content",
+    minWidth: isMobile ? "80px" : "fit-content", // Ancho mínimo en móvil
+    minHeight: isMobile ? "48px" : "auto", // Altura mínima táctil
     flexShrink: 0,
     position: "relative",
     background: active
@@ -296,6 +319,11 @@ export default function CategoryTabs({ categorias = [], activa, onChange }) {
     transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
     touchAction: "manipulation",
     userSelect: "none",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    // Asegurar que es clickeable en móvil
+    WebkitTapHighlightColor: "transparent",
   });
 
   const arrowHoverStyle = {
@@ -304,7 +332,7 @@ export default function CategoryTabs({ categorias = [], activa, onChange }) {
     boxShadow: "0 8px 28px rgba(0, 0, 0, 0.2)",
   };
 
-  // Agregar estilos CSS como string para inyección
+  // Agregar estilos CSS optimizados
   useEffect(() => {
     const styleId = 'category-tabs-styles';
     let existingStyle = document.getElementById(styleId);
@@ -325,13 +353,24 @@ export default function CategoryTabs({ categorias = [], activa, onChange }) {
         
         @media (max-width: 768px) {
           .category-tabs-rail { 
-            scroll-snap-type: x mandatory;
+            scroll-snap-type: x proximity;
             overscroll-behavior-x: contain;
             scroll-padding: 20px;
           }
           .category-tabs-rail button { 
             scroll-snap-align: center;
             scroll-snap-stop: normal;
+            /* Mejorar área táctil */
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+          }
+          
+          /* Asegurar que los botones sean clickeables */
+          .category-tabs-rail button:active {
+            transform: scale(0.95);
           }
         }
         
@@ -365,10 +404,6 @@ export default function CategoryTabs({ categorias = [], activa, onChange }) {
       `;
       document.head.appendChild(style);
     }
-
-    return () => {
-      // No remover el estilo al desmontar para evitar parpadeos
-    };
   }, []);
 
   return (
@@ -396,12 +431,12 @@ export default function CategoryTabs({ categorias = [], activa, onChange }) {
             boxShadow: "0 4px 12px rgba(6, 182, 212, 0.3)",
           }}
         >
-          <span>Desliza para navegar</span>
+          <span>Toca o desliza</span>
           <motion.div
             className="scroll-hint-animation"
             style={{ display: "flex", alignItems: "center" }}
           >
-            👉
+            👆
           </motion.div>
         </motion.div>
       )}
@@ -524,7 +559,7 @@ export default function CategoryTabs({ categorias = [], activa, onChange }) {
           )}
         </AnimatePresence>
 
-        {/* Contenedor de categorías con scroll mejorado */}
+        {/* Contenedor de categorías con interacción mejorada */}
         <motion.div
           ref={scrollContainerRef}
           className="category-tabs-rail"
@@ -533,6 +568,7 @@ export default function CategoryTabs({ categorias = [], activa, onChange }) {
           transition={{ duration: 0.4, ease: "easeOut" }}
           style={railStyle}
           onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
         >
           {categorias.map((categoria, index) => {
             const isActive = activa === categoria.id;
@@ -550,14 +586,14 @@ export default function CategoryTabs({ categorias = [], activa, onChange }) {
                   duration: 0.3,
                   ease: "easeOut"
                 }}
-                whileHover={{ 
+                whileHover={!isMobile ? { 
                   y: -2,
                   boxShadow: isActive 
                     ? "0 12px 32px -8px rgba(59, 130, 246, 0.5)" 
                     : "0 8px 24px -4px rgba(30, 64, 175, 0.15)"
-                }}
-                whileTap={{ scale: 0.96 }}
-                onClick={() => handleCategoryClick(categoria.id)}
+                } : {}}
+                whileTap={{ scale: 0.95 }}
+                onClick={(e) => handleCategoryClick(categoria.id, e)}
                 onMouseEnter={() => !isMobile && setShowTooltip(categoria.id)}
                 onMouseLeave={() => setShowTooltip(null)}
                 style={buttonStyle(isActive)}

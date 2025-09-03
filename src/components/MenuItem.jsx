@@ -5,8 +5,24 @@ function LazyImage({ src, alt, className }) {
   const [isLoaded, setIsLoaded] = useState(false)
   const [isInView, setIsInView] = useState(false)
   const [error, setError] = useState(false)
+  const [imageSrc, setImageSrc] = useState('')
+  const [isMobile, setIsMobile] = useState(false)
   const imgRef = useRef()
 
+  // Detectar móvil
+  useEffect(() => {
+    const checkMobile = () => {
+      const mobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+                    window.innerWidth <= 768;
+      setIsMobile(mobile);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, [])
+
+  // Intersection Observer optimizado para móvil
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -15,7 +31,10 @@ function LazyImage({ src, alt, className }) {
           observer.disconnect()
         }
       },
-      { threshold: 0.1, rootMargin: '50px' }
+      { 
+        threshold: isMobile ? 0.05 : 0.1,
+        rootMargin: isMobile ? '100px' : '50px' // Más anticipación en móvil
+      }
     )
 
     if (imgRef.current) {
@@ -23,8 +42,60 @@ function LazyImage({ src, alt, className }) {
     }
 
     return () => observer.disconnect()
-  }, [])
+  }, [isMobile])
 
+  // Precargar imagen cuando está en vista
+  useEffect(() => {
+    if (!isInView || !src) return;
+
+    const loadImage = async () => {
+      try {
+        // Normalizar ruta - ESTO ES CLAVE PARA VERCEL
+        let imageUrl = src;
+        
+        // Si no empieza con / o http, agregar /images/
+        if (!imageUrl.startsWith('/') && !imageUrl.startsWith('http')) {
+          imageUrl = `/images/${imageUrl}`;
+        }
+        
+        // Si es solo el nombre del archivo, asumir que está en /images/platos/
+        if (!imageUrl.includes('/') && imageUrl.includes('.')) {
+          imageUrl = `/images/platos/${imageUrl}`;
+        }
+
+        console.log(`🔍 [${isMobile ? 'MÓVIL' : 'ESCRITORIO'}] Cargando:`, imageUrl);
+
+        // Precargar imagen
+        const img = new Image();
+        
+        const loadPromise = new Promise((resolve, reject) => {
+          img.onload = () => {
+            console.log(`✅ [${isMobile ? 'MÓVIL' : 'ESCRITORIO'}] Cargada:`, imageUrl);
+            resolve(imageUrl);
+          };
+          
+          img.onerror = (err) => {
+            console.error(`❌ [${isMobile ? 'MÓVIL' : 'ESCRITORIO'}] Error:`, imageUrl, err);
+            reject(err);
+          };
+        });
+
+        img.src = imageUrl;
+        const loadedUrl = await loadPromise;
+        setImageSrc(loadedUrl);
+        
+      } catch (error) {
+        console.error('Error cargando imagen:', error);
+        setError(true);
+        // Fallback a imagen placeholder
+        setImageSrc('/images/placeholder.jpg');
+      }
+    };
+
+    loadImage();
+  }, [isInView, src, isMobile])
+
+  // Si no hay src o está vacío
   if (!src || src.trim() === '') {
     return (
       <div className={`bg-gradient-to-br from-sky-50 to-blue-50 rounded-2xl flex items-center justify-center ${className}`}>
@@ -37,25 +108,51 @@ function LazyImage({ src, alt, className }) {
     <div ref={imgRef} className={`relative overflow-hidden rounded-2xl ${className}`}>
       {!isInView ? (
         <div className="animate-pulse bg-gradient-to-br from-sky-50 to-blue-50 w-full h-full rounded-2xl flex items-center justify-center">
-          <div className="text-blue-400 text-sm">🍽️</div>
+          <div className="text-blue-400 text-sm">
+            {isMobile ? '📱' : '🖥️'} Preparando...
+          </div>
         </div>
       ) : (
         <>
-          {!isLoaded && !error && (
+          {/* Loading state */}
+          {(!isLoaded && !error && isInView) && (
             <div className="animate-pulse bg-gradient-to-br from-sky-50 to-blue-50 w-full h-full rounded-2xl flex items-center justify-center absolute inset-0 z-10">
-              <div className="text-blue-400 text-xs">Cargando...</div>
+              <div className="text-blue-400 text-xs">
+                {isMobile ? '📱 Cargando...' : '🖥️ Cargando...'}
+              </div>
             </div>
           )}
-          <motion.img
-            src={src}
-            alt={alt}
-            className={`w-full h-full object-cover ${isLoaded ? 'opacity-100' : 'opacity-0'} transition-opacity duration-500`}
-            onLoad={() => setIsLoaded(true)}
-            onError={() => setError(true)}
-            loading="lazy"
-            whileHover={{ scale: 1.05 }}
-            transition={{ duration: 0.4 }}
-          />
+          
+          {/* Error state */}
+          {error && (
+            <div className="bg-gradient-to-br from-gray-50 to-gray-100 w-full h-full rounded-2xl flex flex-col items-center justify-center">
+              <div className="text-gray-400 text-2xl mb-2">🖼️</div>
+              <div className="text-gray-500 text-xs text-center px-2">
+                {isMobile ? 'Sin imagen' : 'Imagen no disponible'}
+              </div>
+            </div>
+          )}
+          
+          {/* Imagen cargada */}
+          {imageSrc && !error && (
+            <motion.img
+              src={imageSrc}
+              alt={alt}
+              className={`w-full h-full object-cover ${isLoaded ? 'opacity-100' : 'opacity-0'} transition-opacity duration-500`}
+              onLoad={() => {
+                console.log(`✅ Imagen renderizada: ${imageSrc}`);
+                setIsLoaded(true);
+              }}
+              onError={(e) => {
+                console.error(`❌ Error al renderizar: ${imageSrc}`, e);
+                setError(true);
+              }}
+              loading={isMobile ? "eager" : "lazy"} // Carga inmediata en móvil
+              decoding="async"
+              whileHover={{ scale: 1.05 }}
+              transition={{ duration: 0.4 }}
+            />
+          )}
         </>
       )}
     </div>
@@ -75,16 +172,16 @@ export default function MenuItem({ title, price, image, description }) {
         transition: { duration: 0.4, ease: "easeOut" }
       }}
       style={{
-        background: 'rgba(248, 250, 252, 0.95)', // slate-50 con transparencia
+        background: 'rgba(248, 250, 252, 0.95)',
         backdropFilter: 'blur(20px)',
         borderRadius: '24px',
-        boxShadow: '0 20px 40px -12px rgba(30, 64, 175, 0.15)', // sombra azul marina suave
+        boxShadow: '0 20px 40px -12px rgba(30, 64, 175, 0.15)',
         overflow: 'hidden',
         transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
-        margin: '1rem', // Espaciado entre items
+        margin: '1rem',
         position: 'relative'
       }}
       className="hover:shadow-2xl hover:shadow-blue-200/20"
@@ -137,7 +234,7 @@ export default function MenuItem({ title, price, image, description }) {
           style={{
             fontSize: '1.125rem',
             fontWeight: 'bold',
-            color: '#1e293b', // slate-800
+            color: '#1e293b',
             marginBottom: '0.75rem',
             lineHeight: '1.4',
             display: '-webkit-box',
@@ -156,7 +253,7 @@ export default function MenuItem({ title, price, image, description }) {
           <motion.p 
             style={{
               fontSize: '0.875rem',
-              color: '#64748b', // slate-500
+              color: '#64748b',
               lineHeight: '1.6',
               marginBottom: '1rem',
               flex: '1',
