@@ -117,7 +117,7 @@ export default function Home() {
           }}
           className="max-w-xs sm:max-w-md mx-auto px-4"
         >
-          🌊 Descubre nuestros deliciosos platos del mar 🍽️
+          🌊 Descubre nuestros deliciosos platos 🍽️
         </motion.p>
       </header>
 

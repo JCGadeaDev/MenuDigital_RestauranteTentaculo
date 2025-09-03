@@ -38,10 +38,11 @@
 html { 
   font-family: Poppins, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
   scroll-behavior: smooth;
+  background: var(--brand-accent) !important;
 }
 
 body {
-  background: linear-gradient(135deg, var(--brand-cream) 0%, var(--brand-soft) 50%, var(--brand-sky) 100%);
+  background: var(--brand-accent) !important;
   min-height: 100vh;
   color: #1e293b; /* slate-800 para texto por defecto */
 }
@@ -55,7 +56,7 @@ body {
 /* Scrollbar personalizado temática marina */
 ::-webkit-scrollbar {
   width: 8px;
-  background: var(--brand-cream);
+  background: var(--brand-accent);
 }
 ::-webkit-scrollbar-thumb {
   background: linear-gradient(to bottom, var(--brand-navy), var(--brand-blue));
@@ -293,4 +294,20 @@ body {
 
 .ocean-depth {
   background: radial-gradient(ellipse at center, var(--brand-blue) 0%, var(--brand-navy) 50%, var(--brand-deep) 100%);
+}
+
+/* Forzar el color en todos los contenedores principales */
+html, body, #root, .App {
+  background: var(--brand-accent) !important;
+  min-height: 100vh;
+}
+
+/* Asegurar que ningún div principal tenga fondo blanco */
+body > div, #root > div {
+  background: transparent !important;
+}
+
+/* Sobrescribir cualquier clase de Tailwind que pueda estar aplicando blanco */
+.bg-white {
+  background: var(--brand-accent) !important;
 }
