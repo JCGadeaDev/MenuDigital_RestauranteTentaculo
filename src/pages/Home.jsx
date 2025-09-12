@@ -2,7 +2,7 @@ import MenuItem from "../components/MenuItem";
 import CategoryTabs from "../components/CategoryTabs";
 import { useState } from "react";
 import { categorias, items } from "../data/menu";
-import logo from "/logo.png";
+import logo from "/logo.webp";
 import { motion } from "framer-motion";
 
 export default function Home() {
@@ -44,8 +44,8 @@ export default function Home() {
           src={logo}
           alt="El Tentaculo"
           style={{
-            width: "300px",
-            height: "300px",
+            width: "400px",
+            height: "400px",
             objectFit: "contain",
             filter:
               "brightness(1.1) contrast(1.2) drop-shadow(0 8px 16px rgba(59, 130, 246, 0.3))",
@@ -117,7 +117,7 @@ export default function Home() {
           }}
           className="max-w-xs sm:max-w-md mx-auto px-4"
         >
-          🌊 Descubre nuestros deliciosos platos 🍽️
+          🌊 Descubre nuestros deliciosos platos
         </motion.p>
       </header>
 
