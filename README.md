@@ -1,10 +1,8 @@
 # MenuDigital_RestauranteTentaculo
 
 Descripción breve
-Una aplicación de "menú digital" diseñada para el restaurante Tentáculo. Permite a clientes explorar el menú, ver detalles de platillos (ingredientes, alérgenos, precio), y realizar pedidos o solicitar la cuenta desde su dispositivo móvil o tableta. Este repositorio contiene la implementación front-end (y/o back-end) del proyecto, con enfoque en accesibilidad, diseño responsive y experiencia de usuario rápida.
+Una aplicación de "menú digital" diseñada para el restaurante Tentáculo. Permite a clientes explorar el menú, ver detalles de platillos (ingredientes, alérgenos, precio), y realizar pedidos o solicitar la cuenta desde su dispositivo móvil o tableta. Este repositorio contiene la implementación front-end del proyecto, con enfoque en accesibilidad, diseño responsive y experiencia de usuario rápida.
 
-Demo
-- Demo (si está desplegado): https://TU-DEMO-AQUI
 - Versión en local: instrucciones más abajo
 
 Características principales
@@ -16,10 +14,8 @@ Características principales
 - (Opcional) Panel de administración para editar elementos del menú.
 
 Tecnologías
-- Frontend: (ejemplo) React / Next.js / Vue (ajustar según repo)
-- Estilos: Tailwind CSS / CSS Modules / SASS
-- Backend: Node.js + Express / Firebase / Serverless (ajustar según repo)
-- Base de datos: MongoDB / PostgreSQL / Firestore (ajustar según repo)
+- Frontend: React / Next.js /
+- Estilos: Tailwind CSS / CSS Modules / SAS
 - Otras: Vercel / Netlify para despliegue (si aplica)
 
 Instalación (local)
